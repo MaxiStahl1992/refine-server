@@ -12,11 +12,19 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const getAllProperties = async (req, res) => {};
+const getAllProperties = async (req, res) => {
+    try{
+        const properties = await Property.find({}).limit(req.query._end);
+
+        res.status(200).json(properties);
+    } catch (error) {
+        res.status(500).json({ message: error.message});
+    }
+};
+
 const getPropertyDetail = async (req, res) => {};
 
 const createProperty = async (req, res) => {
-
     try{
         const { title, description, propertyType, location, price, photo, email } = req.body;
 
@@ -28,15 +36,17 @@ const createProperty = async (req, res) => {
 
         if(!user) throw new Error ('User not found');
 
-        const photoUrl = await cloudinary.uploader.upload(photo);
+        const picture = await cloudinary.uploader.upload(photo);
+        const photoUrl = picture.url
+        console.log(photoUrl)
 
         const newProperty = await Property.create ({
             title,
             description,
             propertyType,
+            photo: photoUrl,
             location,
             price,
-            photo: photoUrl.url,
             creator: user._id
         });
 
